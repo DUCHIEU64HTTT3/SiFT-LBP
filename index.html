@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Image Similarity Search</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+    --primary:#2563eb;
+    --accent:#38bdf8;
+    --bg:#f1f5f9;
+    --card:#ffffff;
+    --text:#0f172a;
+    --muted:#64748b;
+    --border:#e2e8f0;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+    margin:0;
+    font-family: "Inter","Segoe UI",sans-serif;
+    background:linear-gradient(135deg,#eef2ff,#f8fafc);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:40px 15px;
+    color:var(--text);
+}
+
+.container{
+    background:var(--card);
+    width:100%;
+    max-width:560px;
+    border-radius:22px;
+    padding:32px;
+    box-shadow:0 25px 50px rgba(15,23,42,0.12);
+}
+
+/* HEADER */
+.header{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:26px;
+}
+.logo{
+    width:54px;
+    height:54px;
+    border-radius:16px;
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:26px;
+    font-weight:700;
+}
+.header h1{
+    margin:0;
+    font-size:22px;
+}
+.header p{
+    margin:4px 0 0;
+    font-size:13px;
+    color:var(--muted);
+}
+
+/* MODE SWITCH */
+.mode-switch{
+    display:flex;
+    background:#f8fafc;
+    border-radius:14px;
+    padding:6px;
+    margin-bottom:22px;
+}
+.mode-btn{
+    flex:1;
+    padding:10px;
+    border:none;
+    background:transparent;
+    border-radius:10px;
+    font-weight:600;
+    color:var(--muted);
+    cursor:pointer;
+    transition:0.25s;
+}
+.mode-btn.active{
+    background:var(--card);
+    color:var(--primary);
+    box-shadow:0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* UPLOAD */
+.upload-box{
+    border:2px dashed var(--border);
+    border-radius:18px;
+    padding:28px 20px;
+    text-align:center;
+    transition:0.3s;
+}
+.upload-box:hover{
+    border-color:var(--primary);
+    background:#f8fafc;
+}
+.upload-box label{
+    display:inline-block;
+    padding:12px 22px;
+    background:var(--primary);
+    color:#fff;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+input[type=file]{ display:none; }
+
+/* RADIO */
+.radio-group{
+    display:flex;
+    justify-content:center;
+    gap:22px;
+    margin:20px 0;
+}
+.radio-group label{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    cursor:pointer;
+    font-weight:500;
+}
+
+/* SEARCH */
+.btn-search{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:16px;
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    color:#fff;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.25s;
+}
+.btn-search:hover{
+    transform:translateY(-1px);
+    box-shadow:0 8px 20px rgba(37,99,235,0.35);
+}
+
+/* PREVIEW */
+.preview{
+    width:100%;
+    margin-top:20px;
+    border-radius:18px;
+    display:none;
+    border:1px solid var(--border);
+}
+
+/* FEATURES */
+.features{
+    display:flex;
+    gap:14px;
+    margin-top:22px;
+}
+.feature-card{
+    flex:1;
+    background:#f8fafc;
+    padding:12px;
+    border-radius:16px;
+    text-align:center;
+}
+.feature-card h4{
+    margin:4px 0 10px;
+    font-size:13px;
+    color:var(--muted);
+}
+.feature-card img{
+    width:100%;
+    border-radius:12px;
+    border:1.5px solid var(--border);
+}
+
+/* CAMERA */
+#camera{
+    width:100%;
+    border-radius:18px;
+    margin-top:18px;
+    display:none;
+}
+
+@media(max-width:520px){
+    .features{ flex-direction:column; }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">🧠</div>
+        <div>
+            <h1>Image Similarity Search</h1>
+            <p>LBP • SIFT • Inverted Index</p>
+        </div>
+    </div>
+
+    <!-- MODE SWITCH -->
+    <div class="mode-switch">
+        <button class="mode-btn active" id="uploadModeBtn">📁 Upload</button>
+        <button class="mode-btn" id="cameraModeBtn">📷 Camera</button>
+    </div>
+
+    <!-- FORM -->
+    <form method="POST" enctype="multipart/form-data">
+
+        <!-- UPLOAD -->
+        <div class="upload-box" id="uploadSection">
+            <label for="fileInput">Chọn ảnh từ thiết bị</label>
+            <input type="file" id="fileInput" name="file" accept="image/*">
+        </div>
+
+        <!-- RADIO -->
+        <div class="radio-group">
+            <label><input type="radio" name="method" value="lbp" checked> LBP</label>
+            <label><input type="radio" name="method" value="sift"> SIFT</label>
+            <label><input type="radio" name="method" value="both"> BOTH</label>
+        </div>
+
+        <!-- SEARCH -->
+        <button class="btn-search" type="submit">🔍 Tìm ảnh tương tự</button>
+    </form>
+
+    <!-- PREVIEW -->
+    <img id="preview" class="preview">
+
+    <!-- FEATURE VIS -->
+    <div class="features">
+        <div class="feature-card">
+            <h4>LBP Histogram</h4>
+            <img id="lbpChart">
+        </div>
+        <div class="feature-card">
+            <h4>SIFT Keypoints</h4>
+            <img id="siftChart">
+        </div>
+    </div>
+
+    <!-- CAMERA -->
+    <video id="camera" autoplay playsinline></video>
+
+</div>
+
+<script>
+const fileInput = document.getElementById("fileInput");
+const previewImg = document.getElementById("preview");
+const uploadBtn = document.getElementById("uploadModeBtn");
+const cameraBtn = document.getElementById("cameraModeBtn");
+const uploadSection = document.getElementById("uploadSection");
+const camera = document.getElementById("camera");
+
+/* IMAGE PREVIEW */
+fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        previewImg.src = e.target.result;
+        previewImg.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+});
+
+/* MODE SWITCH */
+uploadBtn.onclick = () => {
+    uploadBtn.classList.add("active");
+    cameraBtn.classList.remove("active");
+    uploadSection.style.display = "block";
+    camera.style.display = "none";
+    stopCamera();
+};
+
+cameraBtn.onclick = () => {
+    cameraBtn.classList.add("active");
+    uploadBtn.classList.remove("active");
+    uploadSection.style.display = "none";
+    camera.style.display = "block";
+    startCamera();
+};
+
+/* CAMERA */
+function startCamera(){
+    navigator.mediaDevices.getUserMedia({ video:true })
+        .then(stream => camera.srcObject = stream)
+        .catch(err => alert("Không thể mở camera"));
+}
+function stopCamera(){
+    if(camera.srcObject){
+        camera.srcObject.getTracks().forEach(t => t.stop());
+        camera.srcObject = null;
+    }
+}
+</script>
+
+</body>
+</html>
